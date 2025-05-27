@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Fiche Expertise Automobile</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    /* (styles inchangés) */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 20px;
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    h2, h3 { color: #ffffff; }
+    label { font-weight: bold; display: block; }
+    input, select, textarea, button {
+      margin-top: 5px; margin-bottom: 15px; padding: 8px;
+      width: 100%; max-width: 500px; box-sizing: border-box;
+      border-radius: 5px; border: 1px solid #555;
+      background-color: #1e1e1e; color: #fff;
+    }
+    button {
+      background-color: #3498db; color: white; border: none;
+      cursor: pointer; font-size: 16px;
+    }
+    button:hover { background-color: #2980b9; }
+    table {
+      border-collapse: separate; border-spacing: 0; margin-top: 10px;
+      width: 100%; max-width: 800px; background-color: #add8e6; color: #000;
+    }
+    td, th {
+      border: 1px solid #000; padding: 10px; text-align: center;
+    }
+    td { background-color: #f0f8ff; }
+    th { background-color: #87cefa; }
+    img {
+      width: 80px; margin: 5px;
+      border-radius: 5px; border: 1px solid #ddd;
+    }
+    .action-buttons {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      max-width: 500px; margin-top: 15px;
+    }
+    .action-buttons button { flex: 1 1 100%; }
+    @media (min-width: 600px) {
+      .action-buttons button { flex: 1; }
+    }
+    .instructions {
+      background-color: #1e1e1e;
+      border-left: 4px solid #3498db;
+      padding: 10px 15px;
+      margin: 20px 0; max-width: 800px;
+    }
+    #listeFiches {
+      background-color: #1e1e1e;
+      border: 1px solid #444;
+      padding: 10px; margin-top: 20px;
+      max-width: 800px; white-space: pre-wrap;
+    }
+  </style>
+  
+</head>
+<body>
+  <h2>Expertise Véhicule</h2>
+
+  <div class="instructions">
+    <p>
+      Cette application permet de remplir une fiche d'expertise à partir d'un fichier Excel.<br>
+      1) Importer votre fichier Excel<br>
+      2) Sélectionner un véhicule<br>
+      3) Les champs "Dépôt" et "DSP" se rempliront automatiquement<br>
+      4) Cocher les défauts, ajouter des photos, commentaire, puis valider
+    </p>
+  </div>
+
+   <label>Importer fichier Excel :</label>
+  <input type="file" id="excelInput" accept=".xlsx,.xls" />
+
+  <div>
+    <label>Sélection du véhicule :</label>
+    <select id="vehiculeSelect"></select>
+
+    <label>Dépôt :</label>
+    <input type="text" id="vin" readonly />
+
+    <label>DSP :</label>
+    <input type="text" id="modele" readonly />
+  </div>
+
+  <h3>Défauts</h3>
+  <table>
+    <tr>
+      <th></th>
+      <th>Montant Gauche</th>
+      <th>Montant Droit</th>
+      <th>Batteuse</th>
+    </tr>
+    <tr>
+      <td>Cadre Droit</td>
+      <td><input type="checkbox" data-libelle="Cadre Droit - Montant Gauche - Cassé" /> Cassé<br><input type="checkbox" data-libelle="Cadre Droit - Montant Gauche - Déformé" /> Déformé</td>
+      <td><input type="checkbox" data-libelle="Cadre Droit - Montant Droit - Cassé" /> Cassé<br><input type="checkbox" data-libelle="Cadre Droit - Montant Droit - Déformé" /> Déformé</td>
+      <td><input type="checkbox" data-libelle="Cadre Droit - Batteuse - Cassée" /> Cassée<br><input type="checkbox" data-libelle="Cadre Droit - Batteuse - Déformée" /> Déformée</td>
+    </tr>
+    <tr>
+      <td>Cadre Gauche</td>
+      <td><input type="checkbox" data-libelle="Cadre Gauche - Montant Gauche - Cassé" /> Cassé<br><input type="checkbox" data-libelle="Cadre Gauche - Montant Gauche - Déformé" /> Déformé</td>
+      <td><input type="checkbox" data-libelle="Cadre Gauche - Montant Droit - Cassé" /> Cassé<br><input type="checkbox" data-libelle="Cadre Gauche - Montant Droit - Déformé" /> Déformé</td>
+      <td><input type="checkbox" data-libelle="Cadre Gauche - Batteuse - Cassée" /> Cassée<br><input type="checkbox" data-libelle="Cadre Gauche - Batteuse - Déformée" /> Déformée</td>
+    </tr>
+    <tr>
+      <td>Cadre Arrière</td>
+      <td><input type="checkbox" data-libelle="Cadre Arrière - Montant Haut - Cassé" /> Cassé<br><input type="checkbox" data-libelle="Cadre Arrière - Montant Haut - Déformé" /> Déformé</td>
+      <td><input type="checkbox" data-libelle="Cadre Arrière - Montant Bas - Cassé" /> Cassé<br><input type="checkbox" data-libelle="Cadre Arrière - Montant Bas - Déformé" /> Déformé</td>
+      <td><input type="checkbox" data-libelle="Cadre Arrière - Batteuse - Cassée" /> Cassée<br><input type="checkbox" data-libelle="Cadre Arrière - Batteuse - Déformée" /> Déformée</td>
+    </tr>
+    <tr>
+      <td>Cadre non conforme</td>
+      <td colspan="3"><input type="checkbox" data-libelle="Cadre non conforme - Taille non conforme" /> Taille non conforme</td>
+    </tr>
+  </table>
+
+  <label>Ajouter photos :</label>
+  <input type="file" id="photos" accept="image/*" multiple />
+
+
+  <label>Prendre une photo (caméra arrière) :</label>
+	<div class="action-buttons">
+	<button type="button" onclick="prendrePhoto()">📷 Prendre une photo</button>
+	<span id="compteurPhotos">Photos : 0 / 4</span>
+	</div>
+	<input type="file" id="photoDirect" accept="image/*" capture="environment" style="display: none;" />
+	<div id="photoPreview"></div>
+
+
+  <label>Validation par le chef d’équipe :</label>
+  <select id="validationEquipe">
+    <option value="">-- Choisir une option --</option>
+    <option value="Validé">Validé</option>
+    <option value="Refusé">Refusé</option>
+    <option value="À revoir">À revoir</option>
+  </select>
+
+  <label>Commentaire :</label>
+  <textarea id="commentaire" rows="3"></textarea>
+
+  <label id="labelNomFichier">Nom du fichier texte de sauvegarde :</label>
+  <input type="text" id="nomFichierTxt" placeholder="nom_fichier.txt" />
+
+  <div class="action-buttons">
+    <button onclick="sauvegarderFiche()">✅ Sauvegarder fiche</button>
+	<button onclick="telechargerFiches()">📄 Télécharger les fiches enregistrées</button>
+	<button onclick="reinitialiserFiches()">🗑️ Réinitialiser les fiches enregistrées</button>
+  </div>
+
+  <h3>Fiches enregistrées</h3>
+  <pre id="listeFiches">Aucune fiche enregistrée.</pre>
+
+<script>
+  let workbook, data = [], selectedRow = null;
+  let nomFichierGlobal = null;
+  let contenuFichier = localStorage.getItem('fiches') || "";
+  let photosCamera = []; // Stocke les photos prises en base64
+
+  document.getElementById('excelInput').addEventListener('change', (e) => {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const fileData = evt.target.result;
+      workbook = XLSX.read(fileData, { type: 'binary' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      data = XLSX.utils.sheet_to_json(sheet, {header:1});
+
+      const select = document.getElementById('vehiculeSelect');
+      select.innerHTML = '';
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][5]) {
+          const option = document.createElement('option');
+          option.value = i;
+          option.text = data[i][5];
+          select.appendChild(option);
+        }
+      }
+    };
+    reader.readAsBinaryString(e.target.files[0]);
+  });
+
+  document.getElementById('vehiculeSelect').addEventListener('change', (e) => {
+    const idx = +e.target.value;
+    selectedRow = data[idx];
+    document.getElementById('vin').value = selectedRow[3] || '';
+    document.getElementById('modele').value = selectedRow[1] || '';
+  });
+
+  function prendrePhoto() {
+    if (photosCamera.length >= 4) {
+      alert("Vous avez atteint la limite de 4 photos.");
+      return;
+    }
+    document.getElementById("photoDirect").click();
+  }
+
+  document.getElementById("photoDirect").addEventListener("change", function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (photosCamera.length >= 4) {
+      alert("Limite atteinte !");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      photosCamera.push(e.target.result);
+
+      const img = document.createElement("img");
+      img.src = e.target.result;
+      document.getElementById("photoPreview").appendChild(img);
+
+      document.getElementById("compteurPhotos").textContent = `Photos : ${photosCamera.length} / 4`;
+    };
+    reader.readAsDataURL(file);
+
+    event.target.value = ''; // pour permettre de re-sélectionner
+  });
+
+  function collectDefauts() {
+    const defauts = [];
+    document.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      if (cb.checked && cb.dataset.libelle) {
+        defauts.push(cb.dataset.libelle);
+      }
+    });
+    return defauts.join(", ");
+  }
+  
+  function telechargerFiches() {
+  const contenu = localStorage.getItem('fiches');
+  if (!contenu) {
+    alert("Aucune fiche enregistrée à télécharger.");
+    return;
+  }
+
+  const blob = new Blob([contenu], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nomFichierGlobal || "fiches.txt";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
+  function afficherFichesSauvegardees() {
+    document.getElementById('listeFiches').textContent = contenuFichier || "Aucune fiche enregistrée.";
+  }
+  
+  function reinitialiserFiches() {
+  if (confirm("Êtes-vous sûr de vouloir supprimer toutes les fiches enregistrées ?")) {
+    localStorage.removeItem('fiches');
+	localStorage.removeItem('nomFichier'); // supprime le nom du fichier sauvegardé
+    contenuFichier = "";
+	localStorage.removeItem('nomFichier');
+	nomFichierGlobal = null;
+    afficherFichesSauvegardees();
+    alert("Toutes les fiches ont été supprimées.");
+  }
+}
+
+// 🟡 Proposer l'ouverture du dernier fichier sauvegardé au lancement
+															{
+	const dernierFichier = localStorage.getItem("nomFichier");
+	const fichesSauvegardees = localStorage.getItem("fiches");
+
+  if (dernierFichier && fichesSauvegardees) {
+    if (confirm(`Souhaitez-vous rouvrir le dernier fichier de fiches enregistré : "${dernierFichier}" ?`)) {
+      nomFichierGlobal = dernierFichier;
+      document.getElementById('nomFichierTxt').style.display = 'none';
+      document.getElementById('labelNomFichier').style.display = 'none';
+      contenuFichier = fichesSauvegardees;
+      afficherFichesSauvegardees();
+	  
+	  
+    }
+  }
+});
+
+
+function sauvegarderFiche() {
+  if (!selectedRow) return alert("Aucun véhicule sélectionné");
+
+  const photoInput = document.getElementById('photos');
+  const photoNoms = Array.from(photoInput.files).map(f => f.name);
+
+  // Création de la fiche
+  const fiche = {
+    IDFM: selectedRow[5],
+    Depot: selectedRow[3],
+    DSP: selectedRow[1],
+    Commentaire: document.getElementById('commentaire').value,
+    Validation: document.getElementById('validationEquipe').value,
+    Defauts: collectDefauts(),
+    PhotosImportees: photoNoms,
+    PhotosCamera: []
+  };
+
+  // Traitement des photos prises avec la caméra
+  photosCamera.forEach((base64, i) => {
+    const byteString = atob(base64.split(',')[1]);
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const uintArray = new Uint8Array(arrayBuffer);
+    for (let j = 0; j < byteString.length; j++) {
+      uintArray[j] = byteString.charCodeAt(j);
+    }
+
+    const blob = new Blob([uintArray], { type: 'image/jpeg' });
+    const url = URL.createObjectURL(blob);
+    const filename = `photo_${Date.now()}_${i}.jpg`;
+
+    // Télécharger l'image
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    fiche.PhotosCamera.push(filename); // On garde le nom de fichier, pas le base64
+  });
+
+  // Définir le nom du fichier texte (une seule fois)
+  if (!nomFichierGlobal) {
+    const saisie = document.getElementById('nomFichierTxt').value.trim();
+    if (!saisie) return alert("Veuillez saisir un nom de fichier texte pour la première sauvegarde.");
+    nomFichierGlobal = saisie.endsWith('.txt') ? saisie : saisie + '.txt';
+    document.getElementById('nomFichierTxt').style.display = 'none';
+    document.getElementById('labelNomFichier').style.display = 'none';
+	
+	localStorage.setItem("nomFichier", nomFichierGlobal); // ✅ ICI
+  }
+
+  // Mise à jour du contenu de sauvegarde
+  contenuFichier += JSON.stringify(fiche, null, 2) + "\n\n";
+  localStorage.setItem('fiches', contenuFichier);
+
+  // Génération et téléchargement du fichier texte
+  const blob = new Blob([contenuFichier], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nomFichierGlobal;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  // Restauration automatique du dernier fichier utilisé 
+  {
+	const dernierNomFichier = localStorage.getItem("nomFichier");
+	const dernierContenu = localStorage.getItem("fiches");
+
+	if (dernierNomFichier && confirm(`Reprendre le fichier existant "${dernierNomFichier}" ?`)) {
+    nomFichierGlobal = dernierNomFichier;
+    contenuFichier = dernierContenu || "";
+    document.getElementById('nomFichierTxt').style.display = 'none';
+    document.getElementById('labelNomFichier').style.display = 'none';
+    afficherFichesSauvegardees();
+  }
+});
+
+
+  afficherFichesSauvegardees(); // MAJ interface
+
+  // Réinitialisation des champs si l'utilisateur veut enchaîner
+  if (confirm("Fiche sauvegardée. Voulez-vous passer à une nouvelle fiche ?")) {
+    document.getElementById('commentaire').value = '';
+    document.getElementById('validationEquipe').value = '';
+    document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+    document.getElementById('photoPreview').innerHTML = '';
+    document.getElementById('photos').value = '';
+    photosCamera = [];
+    document.getElementById('compteurPhotos').textContent = "Photos : 0 / 4";
+  } else {
+    alert("Saisie terminée.");
+  }
+}
+
+
+  function afficherFichesSauvegardees() {
+  const container = document.getElementById('listeFiches');
+  container.innerHTML = ''; // Nettoyage
+  
+// ← Place ici ton bloc de reprise automatique
+  window.addEventListener("DOMContentLoaded", () => {
+    const dernierNom = localStorage.getItem("nomFichier");
+    const dernierContenu = localStorage.getItem("fiches");
+    if (dernierNom && dernierContenu) {
+      if (confirm(`Reprendre le fichier existant ? "${dernierNom}"`)) {
+        nomFichierGlobal = dernierNom;
+        contenuFichier    = dernierContenu;
+        document.getElementById('nomFichierTxt').style.display    = 'none';
+        document.getElementById('labelNomFichier').style.display = 'none';
+        afficherFichesSauvegardees();
+  const contenu = localStorage.getItem('fiches');
+  if (!contenu) {
+    container.textContent = "Aucune fiche enregistrée.";
+    return;
+  }
+
+  const fiches = contenu.trim().split('\n\n').map(bloc => {
+    try {
+      return JSON.parse(bloc);
+    } catch (e) {
+      return null;
+    }
+  }).filter(f => f);
+
+  fiches.forEach((fiche, index) => {
+    const div = document.createElement('div');
+    div.style.border = '1px solid #444';
+    div.style.padding = '10px';
+    div.style.marginBottom = '10px';
+    div.style.backgroundColor = '#1a1a1a';
+
+    div.innerHTML = `
+      <strong>Fiche ${index + 1}</strong><br>
+      <b>IDFM:</b> ${fiche.IDFM}<br>
+      <b>Dépôt:</b> ${fiche.Depot}<br>
+      <b>DSP:</b> ${fiche.DSP}<br>
+      <b>Validation:</b> ${fiche.Validation}<br>
+      <b>Commentaire:</b> ${fiche.Commentaire}<br>
+      <b>Défauts:</b> ${fiche.Defauts}<br>
+      <b>Photos importées:</b> ${fiche.PhotosImportees.join(", ") || 'Aucune'}<br>
+      <b>Photos caméra:</b><br>
+      ${fiche.PhotosCamera.map(nom => `<a href="${nom}" target="_blank">${nom}</a>`).join("<br>")}
+    `;
+    container.appendChild(div);
+	
+	
+  });
+}
+
+
+  
+</script>
+
+</body>
+</html>
+reinitialiserFiches()
